@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     image: storymate-chatbot
     ports:
-      - "8008:8007"
+      - "8007:8007"
     env_file:
       - .env  # .env 파일 전체 로드
     environment:
