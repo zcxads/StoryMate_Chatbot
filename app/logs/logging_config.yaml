@@ -1,0 +1,18 @@
+# 로깅 기본 설정
+log_dir: "logs"
+
+# Elasticsearch 관련 설정
+use_elasticsearch: false
+elasticsearch:
+  host: "localhost"  # Elasticsearch 호스트 (Docker 환경에서는 "elasticsearch"로 변경)
+  port: 9200         # Elasticsearch 포트
+  username: "elastic" # 사용자 이름 (필요시 변경)
+  password: "changeme" # 비밀번호 (필요시 변경)
+
+# 로그 레벨 설정
+log_levels:
+  default: "INFO"
+  debug: "DEBUG"
+  console: "INFO"
+  file: "DEBUG"
+  elasticsearch: "INFO"

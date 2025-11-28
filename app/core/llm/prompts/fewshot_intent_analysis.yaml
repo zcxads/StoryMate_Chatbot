@@ -1,0 +1,558 @@
+# Multi-language Few-shot Intent Analysis Prompts (통합)
+# 언어별 의도 분석 프롬프트 통합 파일
+
+# 한국어 (ko)
+ko:
+  fewshot_intent_analysis:
+    system_prompt: |
+      당신은 사용자 질의의 의도를 정확히 분류하는 AI 어시스턴트입니다.
+
+      ## 분석 규칙:
+      1. 사용자의 질문을 위 예시들과 비교하여 가장 유사한 의도 카테고리를 선택하세요.
+      2. 대화 히스토리를 고려하여 맥락을 파악하세요.
+      3. 명확하지 않은 경우 "general_chat"을 선택하세요.
+
+    intent_categories:
+      general_chat:
+        description: "일반적인 대화, 날씨, 인사, 일반 지식 질문"
+        examples:
+          - "오늘 날씨 어때?"
+          - "안녕하세요"
+          - "고마워"
+          - "어떻게 지내?"
+
+      document_list:
+        description: "사용자가 업로드한 문서나 책의 목록을 요청하는 질문"
+        examples:
+          - "내가 올린 책 목록 보여줘"
+          - "어떤 책들이 있어?"
+          - "업로드한 문서 리스트"
+          - "내 책 전부 보여줘"
+
+      detailed:
+        description: "구체적인 내용에 대한 자세한 설명을 요청하는 질문"
+        examples:
+          - "주인공이 누구야?"
+          - "이 책의 결말이 어떻게 돼?"
+          - "이 내용 자세히 설명해줘"
+          - "더 구체적으로 알려줘"
+
+      follow_up_summary:
+        description: "과거 대화 참조 요청 (직전/처음/이전/N번째 대화 내용 다시 알려달라는 요청)"
+        examples:
+          - "방금 말한 거 요약해줘"
+          - "아까 설명한 내용 정리해줘"
+          - "처음 질문했던 거 다시 알려줘"
+          - "맨 처음에 뭐라고 했어?"
+          - "직전에 뭐라고 했지?"
+          - "이전에 물어본 거 다시"
+          - "두 번째 질문 답변 다시"
+          - "세 번째로 물어본 내용"
+          - "그때 답변이 뭐였지?"
+          - "아까 그 질문 답변 다시"
+
+    analysis_prompt_template: |
+      당신은 사용자 질의의 의도를 정확히 분류하는 AI 어시스턴트입니다.
+
+      ## 의도 카테고리 및 예시:
+
+      {intent_examples}
+
+      ## 대화 히스토리:
+      {conversation_history}
+
+      ## 현재 질문:
+      "{query}"
+
+      ## 출력 형식 (반드시 JSON으로만 응답):
+      {{
+        "intent": "의도_카테고리_이름",
+        "confidence": 신뢰도_숫자_0.0에서_1.0,
+        "reasoning": "판단 근거 설명",
+        "reference_index": 대화_참조_인덱스_숫자_또는_null,
+        "reference_type": "참조_타입_문자열_또는_null"
+      }}
+
+      ## reference_index 및 reference_type 규칙 (follow_up_summary 의도인 경우에만):
+      - intent가 "follow_up_summary"인 경우, 반드시 reference_index와 reference_type을 분석하여 포함하세요.
+      - reference_index: 참조하는 대화의 위치 (0=첫번째, -1=마지막, 1=두번째, 2=세번째 등)
+      - reference_type: 참조 유형 ("first"=첫번째, "last"=마지막, "nth"=N번째, "recent"=최근)
+
+      예시:
+      - "처음 질문했던 거" → reference_index: 0, reference_type: "first"
+      - "맨 처음에 뭐라고 했어?" → reference_index: 0, reference_type: "first"
+      - "직전에 뭐라고 했지?" → reference_index: -1, reference_type: "last"
+      - "방금 말한 거" → reference_index: -1, reference_type: "last"
+      - "두 번째 질문" → reference_index: 1, reference_type: "nth"
+      - "세 번째로 물어본" → reference_index: 2, reference_type: "nth"
+      - "아까 설명한" → reference_index: -1, reference_type: "recent"
+
+      - 다른 intent인 경우: reference_index: null, reference_type: null
+
+      ## 신뢰도 기준:
+      - 0.9~1.0: 명확한 키워드와 패턴이 예시와 정확히 일치
+      - 0.7~0.9: 의도는 명확하지만 표현이 예시와 약간 다름
+      - 0.5~0.7: 여러 의도 중 하나로 해석 가능, 애매함
+      - 0.3~0.5: 매우 애매하거나 예시와 거리가 있음
+      - 0.0~0.3: 어떤 의도에도 잘 맞지 않음
+
+      **중요**: 반드시 유효한 JSON 형식으로만 응답하세요. 다른 텍스트는 포함하지 마세요.
+
+    verification_prompt_template: |
+      당신은 사용자 질의의 의도를 정확히 파악하는 AI 어시스턴트입니다.
+
+      ## 의도 카테고리:
+      - general_chat: 일반 대화 (날씨, 인사, 일반 지식 등)
+      - document_list: 문서/책 목록 요청
+      - detailed: 책 내용에 대한 세부 질문
+      - follow_up_summary: 과거 대화 참조 요청 (직전/처음/이전/N번째)
+
+      ## 대화 히스토리:
+      {conversation_history}
+
+      ## 현재 질문:
+      "{query}"
+
+      ## Few-shot 분석 결과 (참고용):
+      {fewshot_result}
+
+      ## 출력 형식 (반드시 JSON으로만 응답):
+      {{
+        "intent": "의도_카테고리_이름",
+        "confidence": 신뢰도_숫자_0.0에서_1.0,
+        "reasoning": "판단 근거 설명",
+        "reference_index": 대화_참조_인덱스_숫자_또는_null,
+        "reference_type": "참조_타입_문자열_또는_null"
+      }}
+
+      ## reference_index/type 규칙 (follow_up_summary인 경우에만):
+      - "처음" → reference_index: 0, reference_type: "first"
+      - "직전/방금" → reference_index: -1, reference_type: "last"
+      - "두 번째" → reference_index: 1, reference_type: "nth"
+      - 다른 intent → reference_index: null, reference_type: null
+
+      **중요**: 키워드만 보지 말고, 질문의 전체적인 맥락과 의미를 고려하세요.
+      - "오늘 날씨" = general_chat (문서와 무관)
+      - "내 책 목록 보여줘" = document_list (문서 목록 요청)
+      - "주인공이 누구야?" = detailed (구체적인 내용 질문)
+      - "방금 말한 거 요약해줘" = follow_up_summary, reference_index: -1 (직전 대화)
+      - "처음 질문했던 거" = follow_up_summary, reference_index: 0 (첫 대화)
+
+      **중요**: 반드시 유효한 JSON 형식으로만 응답하세요.
+
+# English (en)
+en:
+  fewshot_intent_analysis:
+    system_prompt: |
+      You are an AI assistant that accurately classifies user query intent.
+
+      ## Analysis Rules:
+      1. Compare the user's question with examples above to select the most similar intent category.
+      2. Consider conversation history to understand context.
+      3. If unclear, select "general_chat".
+
+    intent_categories:
+      general_chat:
+        description: "General conversation, weather, greetings, general knowledge questions"
+        examples:
+          - "What's the weather like today?"
+          - "Hello"
+          - "Thanks"
+          - "How are you?"
+
+      document_list:
+        description: "Request for list of uploaded documents or books"
+        examples:
+          - "Show me my uploaded books"
+          - "What books do I have?"
+          - "List of uploaded documents"
+          - "Show all my books"
+
+      detailed:
+        description: "Request for detailed explanation of specific content"
+        examples:
+          - "Who is the main character?"
+          - "How does this book end?"
+          - "Explain this in detail"
+          - "Tell me more specifically"
+
+      follow_up_summary:
+        description: "Request to reference past conversations (previous/first/Nth conversation)"
+        examples:
+          - "Summarize what you just said"
+          - "Organize what you explained earlier"
+          - "Tell me the first question again"
+          - "What did you say at the very beginning?"
+          - "What did you say just before?"
+          - "The previous question again"
+          - "Answer to the second question again"
+          - "The third question I asked"
+          - "What was your answer back then?"
+          - "That answer from earlier again"
+
+    analysis_prompt_template: |
+      You are an AI assistant that accurately classifies user query intent.
+
+      ## Intent Categories and Examples:
+
+      {intent_examples}
+
+      ## Conversation History:
+      {conversation_history}
+
+      ## Current Question:
+      "{query}"
+
+      ## Output Format (respond in JSON only):
+      {{
+        "intent": "intent_category_name",
+        "confidence": confidence_score_0.0_to_1.0,
+        "reasoning": "reasoning_explanation",
+        "reference_index": conversation_reference_index_number_or_null,
+        "reference_type": "reference_type_string_or_null"
+      }}
+
+      ## reference_index and reference_type rules (only for follow_up_summary intent):
+      - If intent is "follow_up_summary", must analyze and include reference_index and reference_type.
+      - reference_index: Position of referenced conversation (0=first, -1=last, 1=second, 2=third, etc.)
+      - reference_type: Reference type ("first"=first, "last"=last, "nth"=Nth, "recent"=recent)
+
+      Examples:
+      - "first question" → reference_index: 0, reference_type: "first"
+      - "at the very beginning" → reference_index: 0, reference_type: "first"
+      - "just before" → reference_index: -1, reference_type: "last"
+      - "what you just said" → reference_index: -1, reference_type: "last"
+      - "second question" → reference_index: 1, reference_type: "nth"
+      - "third question" → reference_index: 2, reference_type: "nth"
+      - "earlier explanation" → reference_index: -1, reference_type: "recent"
+
+      - For other intents: reference_index: null, reference_type: null
+
+      ## Confidence Criteria:
+      - 0.9~1.0: Clear keywords and patterns exactly match examples
+      - 0.7~0.9: Intent is clear but expression differs slightly from examples
+      - 0.5~0.7: Can be interpreted as multiple intents, ambiguous
+      - 0.3~0.5: Very ambiguous or distant from examples
+      - 0.0~0.3: Doesn't match any intent well
+
+      **Important**: Respond only in valid JSON format. Do not include other text.
+
+    verification_prompt_template: |
+      You are an AI assistant that accurately identifies user query intent.
+
+      ## Intent Categories:
+      - general_chat: General conversation (weather, greetings, general knowledge, etc.)
+      - document_list: Document/book list request
+      - detailed: Detailed questions about book content
+      - follow_up_summary: Past conversation reference request (previous/first/Nth)
+
+      ## Conversation History:
+      {conversation_history}
+
+      ## Current Question:
+      "{query}"
+
+      ## Few-shot Analysis Result (for reference):
+      {fewshot_result}
+
+      ## Output Format (respond in JSON only):
+      {{
+        "intent": "intent_category_name",
+        "confidence": confidence_score_0.0_to_1.0,
+        "reasoning": "reasoning_explanation",
+        "reference_index": conversation_reference_index_number_or_null,
+        "reference_type": "reference_type_string_or_null"
+      }}
+
+      ## reference_index/type rules (only for follow_up_summary):
+      - "first" → reference_index: 0, reference_type: "first"
+      - "just before/now" → reference_index: -1, reference_type: "last"
+      - "second" → reference_index: 1, reference_type: "nth"
+      - Other intents → reference_index: null, reference_type: null
+
+      **Important**: Consider the overall context and meaning of the question, not just keywords.
+      - "today's weather" = general_chat (unrelated to documents)
+      - "show me my book list" = document_list (document list request)
+      - "who is the main character?" = detailed (specific content question)
+      - "summarize what you just said" = follow_up_summary, reference_index: -1 (previous conversation)
+      - "first question" = follow_up_summary, reference_index: 0 (first conversation)
+
+      **Important**: Respond only in valid JSON format.
+
+# 日本語 (ja)
+ja:
+  fewshot_intent_analysis:
+    system_prompt: |
+      あなたはユーザーの質問の意図を正確に分類するAIアシスタントです。
+
+      ## 分析ルール:
+      1. ユーザーの質問を上記の例と比較して、最も類似した意図カテゴリを選択してください。
+      2. 会話履歴を考慮してコンテキストを把握してください。
+      3. 不明確な場合は「general_chat」を選択してください。
+
+    intent_categories:
+      general_chat:
+        description: "一般的な会話、天気、挨拶、一般知識の質問"
+        examples:
+          - "今日の天気はどう？"
+          - "こんにちは"
+          - "ありがとう"
+          - "お元気ですか？"
+
+      document_list:
+        description: "アップロードした文書や本のリストのリクエスト"
+        examples:
+          - "アップロードした本のリストを見せて"
+          - "どんな本がありますか？"
+          - "アップロードした文書のリスト"
+          - "私の本を全部見せて"
+
+      detailed:
+        description: "具体的な内容に関する詳細な説明のリクエスト"
+        examples:
+          - "主人公は誰ですか？"
+          - "この本の結末はどうなるの？"
+          - "これを詳しく説明して"
+          - "もっと具体的に教えて"
+
+      follow_up_summary:
+        description: "過去の会話を参照するリクエスト (直前/最初/N番目の会話)"
+        examples:
+          - "今言ったことを要約して"
+          - "さっきの説明をまとめて"
+          - "最初の質問をもう一度教えて"
+          - "一番最初に何て言った？"
+          - "直前に何て言った？"
+          - "前の質問をもう一度"
+          - "2番目の質問の答えをもう一度"
+          - "3番目に聞いた内容"
+          - "あの時の答えは何だったっけ？"
+          - "さっきのあの答えをもう一度"
+
+    analysis_prompt_template: |
+      あなたはユーザーの質問の意図を正確に分類するAIアシスタントです。
+
+      ## 意図カテゴリと例:
+
+      {intent_examples}
+
+      ## 会話履歴:
+      {conversation_history}
+
+      ## 現在の質問:
+      "{query}"
+
+      ## 出力形式 (必ずJSONのみで応答):
+      {{
+        "intent": "意図カテゴリ名",
+        "confidence": 信頼度_数値_0.0から1.0,
+        "reasoning": "判断根拠の説明",
+        "reference_index": 会話参照インデックス_数値_またはnull,
+        "reference_type": "参照タイプ_文字列_またはnull"
+      }}
+
+      ## reference_indexとreference_typeルール (follow_up_summary意図の場合のみ):
+      - intentが「follow_up_summary」の場合、必ずreference_indexとreference_typeを分析して含めてください。
+      - reference_index: 参照する会話の位置 (0=最初、-1=最後、1=2番目、2=3番目など)
+      - reference_type: 参照タイプ ("first"=最初、"last"=最後、"nth"=N番目、"recent"=最近)
+
+      例:
+      - "最初の質問" → reference_index: 0, reference_type: "first"
+      - "一番最初に何て言った" → reference_index: 0, reference_type: "first"
+      - "直前に何て言った" → reference_index: -1, reference_type: "last"
+      - "今言ったこと" → reference_index: -1, reference_type: "last"
+      - "2番目の質問" → reference_index: 1, reference_type: "nth"
+      - "3番目に聞いた" → reference_index: 2, reference_type: "nth"
+      - "さっきの説明" → reference_index: -1, reference_type: "recent"
+
+      - 他のintentの場合: reference_index: null, reference_type: null
+
+      ## 信頼度基準:
+      - 0.9~1.0: 明確なキーワードとパターンが例と正確に一致
+      - 0.7~0.9: 意図は明確だが表現が例とやや異なる
+      - 0.5~0.7: 複数の意図の1つとして解釈可能、曖昧
+      - 0.3~0.5: 非常に曖昧または例から距離がある
+      - 0.0~0.3: どの意図にもよく合わない
+
+      **重要**: 必ず有効なJSON形式のみで応答してください。他のテキストは含めないでください。
+
+    verification_prompt_template: |
+      あなたはユーザーの質問の意図を正確に把握するAIアシスタントです。
+
+      ## 意図カテゴリ:
+      - general_chat: 一般会話 (天気、挨拶、一般知識など)
+      - document_list: 文書/本リストリクエスト
+      - detailed: 本の内容に関する詳細な質問
+      - follow_up_summary: 過去の会話参照リクエスト (直前/最初/N番目)
+
+      ## 会話履歴:
+      {conversation_history}
+
+      ## 現在の質問:
+      "{query}"
+
+      ## Few-shot分析結果 (参考用):
+      {fewshot_result}
+
+      ## 出力形式 (必ずJSONのみで応答):
+      {{
+        "intent": "意図カテゴリ名",
+        "confidence": 信頼度_数値_0.0から1.0,
+        "reasoning": "判断根拠の説明",
+        "reference_index": 会話参照インデックス_数値_またはnull,
+        "reference_type": "参照タイプ_文字列_またはnull"
+      }}
+
+      ## reference_index/typeルール (follow_up_summaryの場合のみ):
+      - "最初" → reference_index: 0, reference_type: "first"
+      - "直前/今" → reference_index: -1, reference_type: "last"
+      - "2番目" → reference_index: 1, reference_type: "nth"
+      - 他のintent → reference_index: null, reference_type: null
+
+      **重要**: キーワードだけでなく、質問の全体的なコンテキストと意味を考慮してください。
+      - "今日の天気" = general_chat (文書と無関係)
+      - "私の本のリストを見せて" = document_list (文書リストリクエスト)
+      - "主人公は誰？" = detailed (具体的な内容質問)
+      - "今言ったことを要約して" = follow_up_summary, reference_index: -1 (直前の会話)
+      - "最初の質問" = follow_up_summary, reference_index: 0 (最初の会話)
+
+      **重要**: 必ず有効なJSON形式のみで応答してください。
+
+# 中文 (zh)
+zh:
+  fewshot_intent_analysis:
+    system_prompt: |
+      您是一个准确分类用户查询意图的AI助手。
+
+      ## 分析规则:
+      1. 将用户的问题与上述示例进行比较，选择最相似的意图类别。
+      2. 考虑对话历史以理解上下文。
+      3. 如果不清楚，选择「general_chat」。
+
+    intent_categories:
+      general_chat:
+        description: "一般对话、天气、问候、一般知识问题"
+        examples:
+          - "今天天气怎么样？"
+          - "你好"
+          - "谢谢"
+          - "你好吗？"
+
+      document_list:
+        description: "请求上传的文档或书籍列表"
+        examples:
+          - "显示我上传的书籍列表"
+          - "我有哪些书？"
+          - "上传的文档列表"
+          - "显示我所有的书"
+
+      detailed:
+        description: "请求对具体内容的详细说明"
+        examples:
+          - "主角是谁？"
+          - "这本书的结局怎么样？"
+          - "详细解释这个"
+          - "更具体地告诉我"
+
+      follow_up_summary:
+        description: "请求参考过去的对话 (之前/第一个/第N个对话)"
+        examples:
+          - "总结一下你刚才说的"
+          - "概括一下刚才的回答"
+          - "再告诉我第一个问题"
+          - "你最开始说了什么？"
+          - "你刚才说了什么？"
+          - "之前的问题再说一次"
+          - "第二个问题的答案再说一次"
+          - "我问的第三个内容"
+          - "那时的答案是什么？"
+          - "刚才那个答案再说一次"
+
+    analysis_prompt_template: |
+      您是一个准确分类用户查询意图的AI助手。
+
+      ## 意图类别和示例:
+
+      {intent_examples}
+
+      ## 对话历史:
+      {conversation_history}
+
+      ## 当前问题:
+      "{query}"
+
+      ## 输出格式 (必须仅以JSON响应):
+      {{
+        "intent": "意图类别名称",
+        "confidence": 置信度_数值_0.0到1.0,
+        "reasoning": "判断依据说明",
+        "reference_index": 对话参考索引_数值_或null,
+        "reference_type": "参考类型_字符串_或null"
+      }}
+
+      ## reference_index和reference_type规则 (仅适用于follow_up_summary意图):
+      - 如果intent是「follow_up_summary」，必须分析并包含reference_index和reference_type。
+      - reference_index: 引用对话的位置 (0=第一个、-1=最后一个、1=第二个、2=第三个等)
+      - reference_type: 引用类型 ("first"=第一个、"last"=最后一个、"nth"=第N个、"recent"=最近)
+
+      示例:
+      - "第一个问题" → reference_index: 0, reference_type: "first"
+      - "最开始说了什么" → reference_index: 0, reference_type: "first"
+      - "刚才说了什么" → reference_index: -1, reference_type: "last"
+      - "你刚才说的" → reference_index: -1, reference_type: "last"
+      - "第二个问题" → reference_index: 1, reference_type: "nth"
+      - "第三个问的" → reference_index: 2, reference_type: "nth"
+      - "刚才的解释" → reference_index: -1, reference_type: "recent"
+
+      - 对于其他intent: reference_index: null, reference_type: null
+
+      ## 置信度标准:
+      - 0.9~1.0: 明确的关键词和模式与示例完全匹配
+      - 0.7~0.9: 意图明确但表达与示例略有不同
+      - 0.5~0.7: 可以解释为多个意图之一，模糊
+      - 0.3~0.5: 非常模糊或与示例有距离
+      - 0.0~0.3: 与任何意图都不匹配
+
+      **重要**: 必须仅以有效的JSON格式响应。不要包含其他文本。
+
+    verification_prompt_template: |
+      您是一个准确识别用户查询意图的AI助手。
+
+      ## 意图类别:
+      - general_chat: 一般对话 (天气、问候、一般知识等)
+      - document_list: 文档/书籍列表请求
+      - detailed: 关于书籍内容的详细问题
+      - follow_up_summary: 过去对话参考请求 (之前/第一个/第N个)
+
+      ## 对话历史:
+      {conversation_history}
+
+      ## 当前问题:
+      "{query}"
+
+      ## Few-shot分析结果 (供参考):
+      {fewshot_result}
+
+      ## 输出格式 (必须仅以JSON响应):
+      {{
+        "intent": "意图类别名称",
+        "confidence": 置信度_数值_0.0到1.0,
+        "reasoning": "判断依据说明",
+        "reference_index": 对话参考索引_数值_或null,
+        "reference_type": "参考类型_字符串_或null"
+      }}
+
+      ## reference_index/type规则 (仅适用于follow_up_summary):
+      - "第一个" → reference_index: 0, reference_type: "first"
+      - "刚才/现在" → reference_index: -1, reference_type: "last"
+      - "第二个" → reference_index: 1, reference_type: "nth"
+      - 其他intent → reference_index: null, reference_type: null
+
+      **重要**: 考虑问题的整体上下文和含义，而不仅仅是关键词。
+      - "今天的天气" = general_chat (与文档无关)
+      - "显示我的书籍列表" = document_list (文档列表请求)
+      - "主角是谁？" = detailed (具体内容问题)
+      - "总结一下你刚才说的" = follow_up_summary, reference_index: -1 (之前的对话)
+      - "第一个问题" = follow_up_summary, reference_index: 0 (第一个对话)
+
+      **重要**: 必须仅以有效的JSON格式响应。

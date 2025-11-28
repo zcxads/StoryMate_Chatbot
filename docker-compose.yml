@@ -1,0 +1,66 @@
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: storymate-chatbot
+    ports:
+      - "8008:8007"
+    env_file:
+      - .env  # .env 파일 전체 로드
+    environment:
+      - DEBUG=true
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8007
+
+      # 외부 Qdrant 접속 정보 (모든 변수는 .env에서 관리 권장)
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - QDRANT_COLLECTION_NAME=${QDRANT_COLLECTION_NAME}
+      - QDRANT_TIMEOUT=${QDRANT_TIMEOUT}
+
+      # OpenAI 및 추가 서비스 설정
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
+      - TEMPERATURE=${TEMPERATURE:-0.1}
+
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
+
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-0}
+
+      # 문서 처리/검색 등 추가 환경 설정
+      - CHUNK_SIZE=${CHUNK_SIZE:-1000}
+      - CHUNK_OVERLAP=${CHUNK_OVERLAP:-200}
+      - MAX_SEARCH_TIME=${MAX_SEARCH_TIME:-30}
+      - DEFAULT_SEARCH_K=${DEFAULT_SEARCH_K:-50}
+      - DEFAULT_SCORE_THRESHOLD=${DEFAULT_SCORE_THRESHOLD:-0.8}
+      - DEFAULT_SEARCH_TIMEOUT=${DEFAULT_SEARCH_TIMEOUT:-10}
+      - MAX_CHAT_HISTORY=${MAX_CHAT_HISTORY:-20}
+      - ENSEMBLE_VECTOR_WEIGHT=${ENSEMBLE_VECTOR_WEIGHT:-0.7}
+      - ENSEMBLE_BM25_WEIGHT=${ENSEMBLE_BM25_WEIGHT:-0.3}
+      - BM25_SAMPLE_SIZE=${BM25_SAMPLE_SIZE:-500}
+      - BM25_K_RATIO=${BM25_K_RATIO:-0.3}
+      - MODEL_MAX_TOKENS=${MODEL_MAX_TOKENS:-2000}
+      - MODEL_REQUEST_TIMEOUT=${MODEL_REQUEST_TIMEOUT:-10}
+      - MODEL_DEFAULT_TEMPERATURE=${MODEL_DEFAULT_TEMPERATURE:-0.1}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      # LangSmith
+      - LANGCHAIN_TRACING_V2=true
+      - LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-storymate-chatbot-dev}
+
+    restart: unless-stopped
+    networks:
+      - chatbot-network
+    volumes:
+      - ./app:/app/app
+      - ./requirements.txt:/app/requirements.txt
+      - ./logs:/app/logs
+
+networks:
+  chatbot-network:
+    driver: bridge
