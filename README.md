@@ -2,14 +2,14 @@
 
 ## 프로젝트 개요
 
-**StoryMate Chatbot API**는 사용자가 업로드한 문서를 기반으로 개인화된 독서 경험을 제공하는 AI 챗봇 시스템입니다. 하이브리드 검색(벡터 + BM25)과 다중 AI 모델을 통해 정확하고 맥락에 맞는 답변을 제공하며, 사용자별로 분리된 벡터 데이터베이스를 통해 개인정보를 보호합니다.
+**StoryMate Chatbot API**는 사용자가 업로드한 문서를 기반으로 개인화된 독서 경험을 제공하는 AI 챗봇 시스템입니다. 하이브리드 검색(벡터 + BM25)과 사용자별로 분리된 벡터 데이터베이스를 통해 개인화된 답변을 생성합니다.
 
 ### 역할
-FastAPI 기반 백엔드 API 서버로, 멀티턴 RAG(Retrieval-Augmented Generation) 시스템을 통해 개인화된 독서 챗봇 서비스를 제공합니다. LangGraph 기반 에이전트 아키텍처로 의도 분석, 문서 검색, 답변 생성을 관리합니다.
+FastAPI 기반 API 서버로, 멀티턴 RAG(Retrieval-Augmented Generation) 시스템을 통해 개인화된 독서 챗봇 서비스를 제공합니다. LangGraph 기반 에이전트 아키텍처로 의도 분석, 문서 검색, 답변 생성을 관리합니다.
 
 ### 기술 스택
 - **Backend**: Python 3.11, FastAPI 1.0.0, Uvicorn
-- **AI/ML**: LangChain, LangGraph, OpenAI (GPT-4o, Embeddings), Google Gemini (2.0/2.5)
+- **AI/ML**: LangChain, LangGraph, OpenAI (Embeddings), Google Gemini (2.5)
 - **Vector Database**: Qdrant (벡터 데이터베이스)
 - **Search**: BM25 (키워드 검색), Ensemble Retriever (하이브리드 검색)
 - **Infrastructure**: Docker
