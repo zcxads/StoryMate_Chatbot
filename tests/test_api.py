@@ -7,7 +7,7 @@ def get_server_url(pytestconfig):
     url = pytestconfig.getoption("server_url") or os.getenv("SERVER_URL")
     if url:
         return url.rstrip("/")
-    return "http://175.209.197.38:8007"
+    return "http://localhost:8007"
 
 @pytest.fixture(scope="session")
 def server_url(pytestconfig):
@@ -44,7 +44,7 @@ def test_chat_endpoint(server_url):
     test_data = {
         "user_id": "0",
         "query": "안녕하세요",
-        "model": "gemini-2.0-flash"
+        "model": "gemini-2.5-flash"
     }
     response = requests.post(f"{server_url}/api/v1/chat", json=test_data)
     assert response.status_code in [200, 500], f"/api/v1/chat 응답 코드: {response.status_code}, 내용: {response.text}"
