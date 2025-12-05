@@ -11,16 +11,12 @@ load_dotenv()
 class Settings:
     """애플리케이션 설정을 관리하는 클래스"""
     # 환경 설정
-    DEBUG: bool = os.getenv("DEBUG", "true") == "true"  # 디버그 모드
+    DEBUG: bool = os.getenv("DEBUG")  # 디버그 모드
     
     # API 키 설정
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
-    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL")
-    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY")
-    ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL")
-    TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0.0"))
+    TEMPERATURE: float = float(os.getenv("TEMPERATURE"))
 
     # Qdrant 벡터 데이터베이스 설정
     QDRANT_API_KEY: str = os.getenv("QDRANT_API_KEY")
@@ -54,17 +50,17 @@ class Settings:
     # Model 설정
     MODEL_MAX_TOKENS: int = int(os.getenv("MODEL_MAX_TOKENS", "2000"))  # 모델 최대 토큰 수
     MODEL_REQUEST_TIMEOUT: int = int(os.getenv("MODEL_REQUEST_TIMEOUT", "10"))  # 모델 요청 타임아웃
-    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")  # 임베딩 모델
+    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL")  # 임베딩 모델
 
     # 의도 분석용 모델 설정
-    INTENT_ANALYSIS_MODEL: str = os.getenv("INTENT_ANALYSIS_MODEL", "gpt-4o")  # 의도 분석용 메인 모델
-    INTENT_ANALYSIS_FALLBACK_MODEL: str = os.getenv("INTENT_ANALYSIS_FALLBACK_MODEL", "gpt-4o-mini")  # 의도 분석용 폴백 모델
+    INTENT_ANALYSIS_MODEL: str = os.getenv("INTENT_ANALYSIS_MODEL")  # 의도 분석용 메인 모델
+    INTENT_ANALYSIS_FALLBACK_MODEL: str = os.getenv("INTENT_ANALYSIS_FALLBACK_MODEL")  # 의도 분석용 폴백 모델
 
     # 답변 생성용 모델 설정
-    ANSWER_GENERATION_MODEL: str = os.getenv("ANSWER_GENERATION_MODEL", "gpt-4o")  # 답변 생성용 기본 모델
+    ANSWER_GENERATION_MODEL: str = os.getenv("ANSWER_GENERATION_MODEL")  # 답변 생성용 기본 모델
 
     # 채팅 API 기본 모델
-    DEFAULT_CHAT_MODEL: str = os.getenv("DEFAULT_CHAT_MODEL", "gpt-4o")  # 채팅 API 기본 모델
+    DEFAULT_CHAT_MODEL: str = os.getenv("DEFAULT_CHAT_MODEL")  # 채팅 API 기본 모델
 
     # 서버 설정
     SERVER_HOST: str = os.getenv("SERVER_HOST")  # 서버 호스트 IP
