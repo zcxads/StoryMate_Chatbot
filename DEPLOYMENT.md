@@ -46,7 +46,6 @@ DOCKER_PASSWORD=your_docker_password
 ```bash
 OPENAI_API_KEY=your_openai_api_key
 GEMINI_API_KEY=your_gemini_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
 
 #### GitHub Secrets 설정 방법:
@@ -61,7 +60,6 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
    DOCKER_PASSWORD: Docker Hub 비밀번호 또는 액세스 토큰
    OPENAI_API_KEY: OpenAI API 키
    GEMINI_API_KEY: Google Gemini API 키
-   ANTHROPIC_API_KEY: Anthropic Claude API 키
    ```
 
 ## 🐳 자동 배포된 컨테이너 실행

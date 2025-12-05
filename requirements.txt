@@ -28,9 +28,6 @@ pydantic==2.4.2
 # Google AI (Gemini)
 google-generativeai==0.8.3
 
-# Anthropic (Claude)
-anthropic==0.34.0
-
 # 웹 크롤링 라이브러리
 requests==2.31.0
 beautifulsoup4==4.12.2
